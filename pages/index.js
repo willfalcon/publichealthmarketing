@@ -5,6 +5,9 @@ import Wrapper, { body } from '@/components/Wrapper';
 import client from '@/lib/client';
 import groq from 'groq';
 import styled from 'styled-components';
+import 'react-tooltip/dist/react-tooltip.css';
+import { Tooltip } from 'react-tooltip';
+import { AiOutlineInfoCircle } from 'react-icons/ai';
 
 export default function Home({ packages, header, content, content2 }) {
   return (
@@ -15,10 +18,20 @@ export default function Home({ packages, header, content, content2 }) {
           <Content>{content}</Content>
         </main>
         <Grid className="packages">
-          {packages.map(({ _key, title, content }) => (
+          {packages.map(({ _key, title, content, more }) => (
             <StyledPackage key={_key}>
               <h3>{title}</h3>
-              <Content>{content}</Content>
+              {more && (
+                <>
+                  <a className="more" id={`${title}-more`} style={{ cursor: 'pointer' }}>
+                    <AiOutlineInfoCircle />
+                  </a>
+                  <Tooltip anchorSelect={`#${title}-more`} style={{ maxWidth: '300px' }}>
+                    <Content>{more}</Content>
+                  </Tooltip>
+                </>
+              )}
+              <Content className="package-content">{content}</Content>
             </StyledPackage>
           ))}
         </Grid>
@@ -44,8 +57,21 @@ const Layout = styled.div`
 const StyledPackage = styled.div`
   border: 1px solid ${({ theme }) => theme.grey};
   padding: 5px 10px;
+  display: grid;
+  grid-template-columns: 1fr 25px;
+  grid-template-rows: 40px auto;
   h3 {
     color: ${({ theme }) => theme.orange};
+    grid-row: 1 / 2;
+    grid-column: 1 / 2;
+  }
+  .more {
+    grid-row: 1 / 2;
+    grid-column: 2 / 3;
+  }
+  .package-content {
+    grid-row: 2 / 3;
+    grid-column: 1 / 3;
   }
 `;
 
@@ -71,6 +97,9 @@ export async function getStaticProps() {
         _key,
         title,
         content[] {
+          ${body}
+        },
+        more[] {
           ${body}
         }
       },
