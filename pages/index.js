@@ -5,11 +5,12 @@ import Wrapper, { body } from '@/components/Wrapper';
 import client from '@/lib/client';
 import groq from 'groq';
 import styled from 'styled-components';
-import 'react-tooltip/dist/react-tooltip.css';
-import { Tooltip } from 'react-tooltip';
-import { AiOutlineInfoCircle } from 'react-icons/ai';
 
-export default function Home({ packages, header, content, content2 }) {
+import MoreInfo from '@/components/MoreInfo';
+import Posts from '@/components/Posts';
+
+export default function Home({ packages, header, content, content2, posts }) {
+  // console.log(posts);
   return (
     <>
       <Header {...header} />
@@ -18,39 +19,34 @@ export default function Home({ packages, header, content, content2 }) {
           <Content>{content}</Content>
         </main>
         <Grid className="packages">
-          {packages.map(({ _key, title, content, more }) => (
-            <StyledPackage key={_key}>
-              <h3>{title}</h3>
-              {more && (
-                <>
-                  <a className="more" id={`${title}-more`} style={{ cursor: 'pointer' }}>
-                    <AiOutlineInfoCircle />
-                  </a>
-                  <Tooltip anchorSelect={`#${title}-more`} style={{ maxWidth: '300px' }}>
-                    <Content>{more}</Content>
-                  </Tooltip>
-                </>
-              )}
-              <Content className="package-content">{content}</Content>
+          {packages.map(props => (
+            <StyledPackage key={props._key}>
+              <h3>{props.title}</h3>
+              {props.more && <MoreInfo {...props} />}
+              <Content className="package-content">{props.content}</Content>
             </StyledPackage>
           ))}
         </Grid>
-        <Content>{content2}</Content>
+        <Content className="custom">{content2}</Content>
+        {posts && <Posts posts={posts} />}
       </Layout>
     </>
   );
 }
 
 const Layout = styled.div`
-  width: 1000px;
-  max-width: 100%;
-  margin-left: auto;
-  margin-right: auto;
   main {
+    width: 1000px;
+    max-width: 100%;
+    margin: 20px auto;
     font-weight: bold;
     color: ${({ theme }) => theme.dark};
     padding: 0 40px;
-    margin: 20px 0;
+  }
+  .custom {
+    width: 1000px;
+    max-width: 100%;
+    margin: 20px auto;
   }
 `;
 
@@ -58,8 +54,8 @@ const StyledPackage = styled.div`
   border: 1px solid ${({ theme }) => theme.grey};
   padding: 5px 10px;
   display: grid;
-  grid-template-columns: 1fr 25px;
-  grid-template-rows: 40px auto;
+  grid-template-columns: 1fr 35px;
+  grid-template-rows: auto auto;
   h3 {
     color: ${({ theme }) => theme.orange};
     grid-row: 1 / 2;
@@ -76,10 +72,17 @@ const StyledPackage = styled.div`
 `;
 
 const Grid = styled.div`
+  width: 1000px;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 2rem;
+  display: grid;
+  gap: 15px;
   ${media.break`
-    display: grid;
+    padding: 0;
+    margin: 4rem auto 2rem;
     grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
   `}
 `;
 
@@ -108,10 +111,35 @@ export async function getStaticProps() {
       },
       content2[] {
         ${body}
+      },
+      postCategory[]->{
+        _id
       }
     }
   `);
+
+  const postRefs = data.postCategory.map(({ _id }) => _id).join(',');
+
+  const posts = await client.fetch(
+    groq`
+    *[_type == 'post' && count((categories[]->_id)[@ in [$posts]]) > 0] | order(publishedAt desc) [0...3] {
+      title,
+      slug,
+      _id,
+      publishedAt,
+      mainImage {
+        ...,
+        asset->{...}
+      },
+      author->{
+        name
+      }
+    }
+  `,
+    { posts: postRefs }
+  );
+
   return {
-    props: data,
+    props: { ...data, posts },
   };
 }

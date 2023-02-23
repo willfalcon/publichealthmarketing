@@ -36,6 +36,10 @@ const GlobalStyle = createGlobalStyle`
       color: ${({ theme }) => theme.offWhite};
     } */
   }
+  a {
+    text-decoration: none;
+    color: ${({ theme }) => theme.orange};
+  }
   button {
     font-family: ${({ theme }) => theme.font.family};
   }
@@ -58,6 +62,8 @@ const GlobalStyle = createGlobalStyle`
   }
   h3 {
     font-weight: bold;
+    color: ${({ theme }) => theme.orange};
+    font-size: 2.6rem;
   }
   h3, label, input, textarea {
     /* font-family: ${({ theme }) => theme.font.heading}; */
@@ -84,22 +90,7 @@ const GlobalStyle = createGlobalStyle`
     line-height: 1.5;
   }
   ul {
-    margin-left: 20px;
-  }
-  .text-center {
-    text-align: center;
-  }
-  .loading-indicator-appear,
-  .loading-indicator-enter {
-    opacity: 0;
-  }
-  .loading-indicator-appear-active,
-  .loading-indicator-enter-active {
-    opacity: 1;
-    transition: opacity ${({ theme }) => theme.timeout}ms;
-  }
-  .color-orange {
-    color: ${({ theme }) => theme.orange} !important;
+    padding-left: 20px;
   }
 `;
 
